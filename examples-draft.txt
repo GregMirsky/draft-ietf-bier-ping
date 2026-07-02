@@ -1,0 +1,293 @@
+Appendix A.  Examples
+
+   This appendix illustrates the BIER Echo Request/Reply exchanges
+   described in this document using the following reference topology.
+
+A.1.  Reference Topology
+
+                        +------+  link1   +------+
+                   +--->| BFR2 |--------->| BFR4 |  (BFER, BFR-ID=4)
+                   |    |      |--------->|      |
+                   |    +------+  link2   +------+
+   +------+        |
+   | BFR1 |--------+
+   +------+        |
+   (BFIR,          |    +------+          +------+
+    BFR-ID=1)      +--->| BFR3 |--------->| BFR5 |  (BFER, BFR-ID=5)
+                        +------+          +------+
+
+           Figure A-1: Reference Topology (5 Nodes)
+
+   BFR1 is the BFIR and Initiator of all Echo Requests.
+   BFR2, BFR3 are transit BFRs.
+   BFR4 (BFR-ID=4) and BFR5 (BFR-ID=5) are BFERs.
+   BFR2 has two ECMP links (link1, link2) toward BFR4.
+   The BIER BitString for reaching both BFERs is: bits 4,5 set
+   (i.e., 0x0000 0018 assuming bit numbering from 1).
+   All nodes share SI=0, Sub-domain=0, BSL=256 bits.
+
+A.2.  Example 1: Ping to a Single BFER
+
+   The Initiator (BFR1) sends a BIER Echo Request addressed only to
+   BFR4.  Since BFR4 is the sole BFER in the BitString, it replies
+   with Return Code "Replying BFR is the only BFER in header
+   BitString" (Table 8).
+
+   BFR1 --> BFR2 --> BFR4
+
+   Echo Request (BFR1 -> BFR4):
+     BIER Header:
+       BFIR-id       = 1
+       BitString     = {4}       (only bit 4 set)
+       Proto         = OAM (Table 5)
+       TTL           = 255
+     OAM Header:
+       Ver           = 1
+       Message Type  = Echo Request (Table 6)
+     Echo Request payload:
+       Reply Mode    = Reply via IPv4/IPv6 UDP (Table 7)
+       Return Code   = No Return Code (Table 8)
+       Sender Handle = 0xABCD0001
+       Seq Number    = 1
+     TLVs:
+       Original SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       Target SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+
+   Echo Reply (BFR4 -> BFR1, via IP/UDP):
+     IP/UDP Header:
+       Src = BFR4 address, Dst = BFR1 address
+       Dst Port = TBD1
+     OAM Header:
+       Ver           = 1
+       Message Type  = Echo Reply (Table 6)
+     Echo Reply payload:
+       Reply Mode    = Reply via IPv4/IPv6 UDP (Table 7)
+       Return Code   = "Replying BFR is the only BFER
+                        in header BitString" (Table 8)
+       Sender Handle = 0xABCD0001
+       Seq Number    = 1
+     TLVs:
+       Incoming SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       Responder BFER TLV (Table 10):
+         BFR-ID = 4
+       Ingress Interface TLV (Table 10):
+         Address Family=1, Address=<BFR4 ingress interface>
+
+A.3.  Example 2: Ping to Multiple BFERs
+
+   The Initiator (BFR1) sends a BIER Echo Request addressed to both
+   BFR4 and BFR5.  BFR4 receives the packet with BitString={4} (after
+   BFR2 forwards only the relevant bits toward BFR4).  Because BFR4
+   is a BFER and there are other bits in the original BitString
+   destined for other BFERs (BFR5), BFR4 replies with Return Code
+   "Replying BFR is one of the BFERs in header BitString" (Table 8).
+
+   BFR5 receives the packet with BitString={5}.  Since BFR5 is the
+   sole remaining BFER on its branch, it replies with Return Code
+   "Replying BFR is the only BFER in header BitString" (Table 8).
+
+   BFR1 --> BFR2 --> BFR4   (BFR4 sees BitString={4} after split)
+     |
+     +----> BFR3 --> BFR5   (BFR5 sees BitString={5} after split)
+
+   Note: The original BIER header leaving BFR1 has BitString={4,5}.
+   BFR2 receives BitString={4} (its forwarded subset) and BFR3
+   receives BitString={5}.  Each BFER sees only its own bit in the
+   incoming header after the bit-forwarding split.
+
+   Echo Request (BFR1 -> BFR4, BFR5):
+     BIER Header:
+       BFIR-id       = 1
+       BitString     = {4, 5}   (bits 4 and 5 set)
+       Proto         = OAM (Table 5)
+       TTL           = 255
+     OAM Header:
+       Ver           = 1
+       Message Type  = Echo Request (Table 6)
+     Echo Request payload:
+       Reply Mode    = Reply via IPv4/IPv6 UDP (Table 7)
+       Return Code   = No Return Code (Table 8)
+       Sender Handle = 0xABCD0002
+       Seq Number    = 2
+     TLVs:
+       Original SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4, 5}
+       Target SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4, 5}
+
+   Echo Reply from BFR4 (BFR4 -> BFR1, via IP/UDP):
+     OAM Header:
+       Message Type  = Echo Reply (Table 6)
+     Echo Reply payload:
+       Return Code   = "Replying BFR is one of the BFERs
+                        in header BitString" (Table 8)
+       Sender Handle = 0xABCD0002
+       Seq Number    = 2
+     TLVs:
+       Incoming SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       Responder BFER TLV (Table 10):
+         BFR-ID = 4
+       Ingress Interface TLV (Table 10):
+         Address Family=1, Address=<BFR4 ingress intf>
+
+   Echo Reply from BFR5 (BFR5 -> BFR1, via IP/UDP):
+     OAM Header:
+       Message Type  = Echo Reply (Table 6)
+     Echo Reply payload:
+       Return Code   = "Replying BFR is the only BFER
+                        in header BitString" (Table 8)
+       Sender Handle = 0xABCD0002
+       Seq Number    = 2
+     TLVs:
+       Incoming SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={5}
+       Responder BFER TLV (Table 10):
+         BFR-ID = 5
+       Ingress Interface TLV (Table 10):
+         Address Family=1, Address=<BFR5 ingress intf>
+
+A.4.  Example 3: Traceroute with DDMAP and ECMP Discovery
+
+   The Initiator (BFR1) performs a traceroute toward BFR4 by sending
+   Echo Requests with increasing TTL and including a DDMAP TLV with
+   MPLS Multipath Entropy Data Sub-TLV to request downstream
+   forwarding and ECMP information from each hop.  Since the Target
+   SI-BitString carries a single BFER (BFR4), the ECMP query is valid
+   per Section 4.2.
+
+   Step 1: TTL=1 (expires at BFR2, transit BFR responds)
+
+   Echo Request (BFR1, TTL=1):
+     BIER Header:
+       BFIR-id       = 1
+       BitString     = {4}
+       Proto         = OAM (Table 5)
+       TTL           = 1
+     OAM Header:
+       Ver           = 1
+       Message Type  = Echo Request (Table 6)
+     Echo Request payload:
+       Reply Mode    = Reply via IPv4/IPv6 UDP (Table 7)
+       Return Code   = No Return Code (Table 8)
+       Sender Handle = 0xABCD0003
+       Seq Number    = 3
+     TLVs:
+       Original SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       Target SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       DDMAP TLV (Table 10):
+         MTU           = 0 (set by Initiator)
+         Address Type  = IPv4 Unnumbered (Table 1)
+         Flags         = I flag set
+         DA            = 224.0.0.2
+         DIA           = 0
+         Sub-TLVs:
+           MPLS Multipath Entropy Data Sub-TLV (Table 11):
+             M=0, Multipath Type and Info as per [RFC8029]
+
+   TTL expires at BFR2.  BFR2 punts to control plane.  BFR2 has two
+   ECMP links toward BFR4 and calculates the Entropy data for each
+   downstream interface.  It responds with two DDMAP TLVs (one per
+   ECMP interface) each carrying the Multipath Entropy Data and
+   Egress BitString Sub-TLVs:
+
+   Echo Reply from BFR2 (BFR2 -> BFR1, via IP/UDP):
+     OAM Header:
+       Message Type  = Echo Reply (Table 6)
+     Echo Reply payload:
+       Return Code   = "Packet-Forward-Success" (Table 8)
+       Sender Handle = 0xABCD0003
+       Seq Number    = 3
+     TLVs:
+       Incoming SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       Ingress Interface TLV (Table 10):
+         Address Family=1, Address=<BFR2 ingress intf from BFR1>
+       Responder BFR TLV (Table 10):
+         Address Family=1, BFR-Prefix=<BFR2 prefix>
+       DDMAP TLV (Table 10):  [downstream toward BFR4 via link1]
+         MTU           = 1500
+         Address Type  = IPv4 Numbered (Table 1)
+         Flags         = I flag set
+         DA            = <BFR4 BFR-Prefix>
+         DIA           = <BFR2 link1 interface address>
+         Sub-TLVs:
+           Egress BitString Sub-TLV (Table 11):
+             SI=0, Sub-domain=0, BSL=256, BitString={4}
+           MPLS Multipath Entropy Data Sub-TLV (Table 11):
+             M=1, Bit-masked Entropy for link1
+       DDMAP TLV (Table 10):  [downstream toward BFR4 via link2]
+         MTU           = 1500
+         Address Type  = IPv4 Numbered (Table 1)
+         Flags         = I flag set
+         DA            = <BFR4 BFR-Prefix>
+         DIA           = <BFR2 link2 interface address>
+         Sub-TLVs:
+           Egress BitString Sub-TLV (Table 11):
+             SI=0, Sub-domain=0, BSL=256, BitString={4}
+           MPLS Multipath Entropy Data Sub-TLV (Table 11):
+             M=1, Bit-masked Entropy for link2
+
+   Step 2: TTL=2 (reaches BFR4, the destination BFER)
+
+   The Initiator copies one of the DDMAP TLVs from BFR2's reply into
+   the subsequent Echo Request (per Section 4.6) to validate that
+   specific ECMP path:
+
+   Echo Request (BFR1, TTL=2):
+     BIER Header:
+       BFIR-id       = 1
+       BitString     = {4}
+       Proto         = OAM (Table 5)
+       TTL           = 2
+     Echo Request payload:
+       Sender Handle = 0xABCD0003
+       Seq Number    = 4
+     TLVs:
+       Original SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       Target SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       DDMAP TLV (Table 10):
+         [copied from BFR2's reply for link1 - see Section 4.6]
+         MTU           = 1500
+         Address Type  = IPv4 Numbered (Table 1)
+         Flags         = I flag set
+         DA            = <BFR4 BFR-Prefix>
+         DIA           = <BFR2 link1 interface address>
+         Sub-TLVs:
+           Egress BitString Sub-TLV (Table 11):
+             SI=0, Sub-domain=0, BSL=256, BitString={4}
+           MPLS Multipath Entropy Data Sub-TLV (Table 11):
+             M=1, Bit-masked Entropy for link1
+
+   BFR4 is BFER and sole destination.  It validates the DDMAP
+   (BitString in Header-H matches Egress BitString Sub-TLV) and
+   verifies the incoming interface matches the DIA in the DDMAP.
+
+   Echo Reply from BFR4 (BFR4 -> BFR1, via IP/UDP):
+     OAM Header:
+       Message Type  = Echo Reply (Table 6)
+     Echo Reply payload:
+       Return Code   = "Replying BFR is the only BFER
+                        in header BitString" (Table 8)
+       Sender Handle = 0xABCD0003
+       Seq Number    = 4
+     TLVs:
+       Incoming SI-BitString TLV (Table 10):
+         SI=0, Sub-domain=0, BSL=256, BitString={4}
+       Responder BFER TLV (Table 10):
+         BFR-ID = 4
+       Ingress Interface TLV (Table 10):
+         Address Family=1, Address=<BFR4 ingress intf from BFR2>
+
+   The Initiator receives Return Code "Replying BFR is the only BFER
+   in header BitString" from BFR4 and stops the traceroute since all
+   BFERs in Target SI-BitString have responded as terminal
+   (Section 4.3).  The Initiator MAY repeat Step 2 with the second
+   DDMAP TLV (link2) to validate the other ECMP path.
