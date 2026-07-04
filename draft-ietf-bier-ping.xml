@@ -211,7 +211,7 @@ This document specifies the mechanism and basic BIER OAM packet
       Otherwise, the value is one from the IANA registry "BIER Next Protocol Identifiers" <xref target="IANA-Next-Protocol-Identifiers"/>.</li>
       <li>Reserved - a two-octet field. The value MUST be zeroed on transmission and ignored on receipt.</li>
         <li>BIER OAM Message Length - a four-octet field that reflects the length of the OAM message in octets, including the
-      header and the Messsage Type Dependent Data.</li>
+      header and the Message Type Dependent Data.</li>
       </ul>
 </section>
 
@@ -311,7 +311,7 @@ is displayed in <xref target="bier-echo-fig"/>. The BIER Echo Request/Reply mess
    This mode can be used for unidirectional path validation.  When the
    Reply Mode is set to 2, the Responder Bit-Forwarding Router (BFR) encapsulates the Echo
    reply payload with the IP/UDP header. The Responder BFR uses the BFIR-id field in the BIER header to
-   determine which IP address family to use in the IP/UDP encaspulation. If the BFIR-id is associated with IPv4 and IPv6 addresses,
+   determine which IP address family to use in the IP/UDP encapsulation. If the BFIR-id is associated with IPv4 and IPv6 addresses,
    the Responder uses its local policy to select the address family. When the Initiator intends to validate
    the return BIER path, the Reply Mode will be set to 3 so that the
    Responder BFR will encapsulate the Echo Reply with the BIER header.
@@ -1465,7 +1465,7 @@ are the same defined in Section 3.4.1.1 of <xref target="RFC8029" format="defaul
         <t>
    When an operator performs BFER ECMP discovery within a BIER domain over MPLS underlay,
    the Initiator MUST include MPLS Multipath Entropy Data Sub-TLV in
-   DDMAPTLV. It MUST also include the BFER in the BitString
+   DDMAP TLV. It MUST also include the BFER in the BitString
    TLV to which the Multipath query is performed.</t>
         <t>
    Any transit BFR will transmit the BIER Echo Reply to the Initiator
@@ -2010,6 +2010,11 @@ Also, the Erroneous Echo Request TLV (<xref target="sect-3.3.8"/>) MUST be inclu
       </section>
       </section>
       
+  <section anchor="sect-5.5-high" numbered="true" toc="default">
+        <name>BIER Echo Request/Reply TLVs and Sub-TLVs</name>
+<t>
+This section describes registration procedures and requests for IANA registries related to Type values in BIER Echo Request/Reply TLVs and sub-TLVs.
+</t>
   <section anchor="sect-5.5" numbered="true" toc="default">
         <name>Common Registration Procedures for TLVs and Sub-TLVs</name>
         <t>
@@ -2017,7 +2022,7 @@ This section describes registration procedures for Type registries in BIER Echo 
         </t>
 
            <table anchor="iana-bier-assign-tlvs-tbl" align="center">
-          <name>TLVs</name>
+          <name>BIER Echo Request/Reply TLVs and Sub-TLVs Registration Ranges</name>
           <thead>
             <tr>
               <th align="left">Range</th>
@@ -2072,13 +2077,13 @@ This section describes registration procedures for Type registries in BIER Echo 
       <section anchor="sect-5.5.0" numbered="true" toc="default">
         <name>TLVs</name>
         <t>
-           IANA is requested to create in the BIER OAM registry group a registry for the Type field
-           of top-level TLVs. as well as sub-registries for the associated sub-TLVs. Note that the
-   meaning of a sub-TLV is scoped by the TLV.  The number of spaces for the
+           IANA is requested to create in the BIER OAM registry group a registry for the BIER Echo Request/Reply'sType field
+           of top-level TLVs, as well as sub-registries for the associated sub-TLVs. Note that the
+   meaning of a sub-TLV is scoped by the TLV. The number of spaces for the
    sub-TLVs of various TLVs is independent.
 </t>
        <ul empty="true" spacing="normal">
-        <li>Registry Name: TLVs</li>
+        <li>Registry Name: BIER Echo Request/Reply TLVs</li>
         <li>Assignment Policy: <xref target="sect-5.5"/></li>
         </ul>
 
@@ -2088,7 +2093,7 @@ The TLVs requested by this document for the IANA
    </t>
    
            <table anchor="iana-bier-ping-tlvs-tbl" align="center">
-          <name>TLVs</name>
+          <name>BIER Echo Request/Reply's TLVs</name>
           <thead>
             <tr>
               <th align="left">Type</th>
@@ -2153,7 +2158,7 @@ The TLVs requested by this document for the IANA
 </section>
 
       <section anchor="sect-5.5.1" numbered="true" toc="default">
-        <name>Sub-TLVs for TLV Type 4</name>
+        <name>Sub-TLVs for BIER Echo Request/Reply TLV Type 4</name>
         <t>
            IANA is requested to create in the registry for the Type 4 (Downstream Detailed Mapping)
            a sub-registry Sub-TLVs for Type 4.
@@ -2164,7 +2169,7 @@ The TLVs requested by this document for the IANA
         </ul>
 
            <table anchor="iana-bier-ping-sub-tlvs-tbl" align="center">
-          <name>TLVs</name>
+          <name>Sub-TLVs for TLV Type 4</name>
           <thead>
             <tr>
               <th align="left">Type</th>
@@ -2191,7 +2196,7 @@ The TLVs requested by this document for the IANA
             </tbody>
             </table>
         </section>
-
+</section>
 </section>
       </section>
 
